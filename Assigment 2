@@ -1,0 +1,89 @@
+Assignment 2, 
+
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class WeatherApp {
+
+    private static final String API_KEY = "YOUR_OPENWEATHERMAP_API_KEY";
+    private static final String BASE_URL = "https://api.openweathermap.org/data/2.5/forecast";
+
+    private static HttpURLConnection getConnection(String urlString) throws IOException {
+        URL url = new URL(urlString);
+        return (HttpURLConnection) url.openConnection();
+    }
+
+    private static JSONObject fetchWeatherData(String city, String date) throws IOException {
+        String urlString = BASE_URL + "?q=" + city + "&appid=" + API_KEY + "&units=metric";
+        HttpURLConnection connection = getConnection(urlString);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        StringBuilder response = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            response.append(line);
+        }
+        reader.close();
+        connection.disconnect();
+        return new JSONObject(response.toString());
+    }
+
+    private static void getTemperature(JSONObject weatherData) {
+        double temperature = weatherData.getJSONObject("main").getDouble("temp");
+        System.out.println("Temperature: " + temperature + " °C");
+    }
+
+    private static void getWindSpeed(JSONObject weatherData) {
+        double windSpeed = weatherData.getJSONObject("wind").getDouble("speed");
+        System.out.println("Wind Speed: " + windSpeed + " m/s");
+    }
+
+    private static void getPressure(JSONObject weatherData) {
+        double pressure = weatherData.getJSONObject("main").getDouble("pressure");
+        System.out.println("Pressure: " + pressure + " hPa");
+    }
+
+    public static void main(String[] args) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+       
+        while (true) {
+            System.out.println("\nMenu:");
+            System.out.println("1. Get Temperature");
+            System.out.println("2. Get Wind Speed");
+            System.out.println("3. Get Pressure");
+            System.out.println("0. Exit");
+           
+            System.out.print("Enter your choice: ");
+            String choice = reader.readLine();
+
+            if ("0".equals(choice)) {
+                System.out.println("Exiting the program.");
+                break;
+            } else if ("1".equals(choice) || "2".equals(choice) || "3".equals(choice)) {
+                System.out.print("Enter city name: ");
+                String city = reader.readLine();
+                System.out.print("Enter date with time (YYYY-MM-DD HH:MM:SS): ");
+                String date = reader.readLine();
+
+                JSONObject weatherData = fetchWeatherData(city, date);
+               
+                if ("1".equals(choice)) {
+                    getTemperature(weatherData);
+                } else if ("2".equals(choice)) {
+                    getWindSpeed(weatherData);
+                } else if ("3".equals(choice)) {
+                    getPressure(weatherData);
+                }
+            } else {
+                System.out.println("Invalid choice. Please choose a valid option.");
+            }
+        }
+    }
+}
+
+
